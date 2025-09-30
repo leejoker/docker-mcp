@@ -1,0 +1,73 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+log/*.log
+!log/.keep
+
+# Temporary files
+tmp/
+*~
+._*
+.DS_Store
+.swp
+.swo
+
+# Local configuration
+config/database.yml
+config/secrets.yml
+
+# Coverage
+coverage/
+*.gcov
+*.gem
+*.rbc
+.rake_tasks
+
+# Documentation
+doc/
+
+# Process pid files
+*.pid
+
+# Bundler
+/.bundle
+vendor/bundle
+.bundle/
+
+# Gems
+*.gem
+*.rbc
+.pack/
+build/
+
+# git ls-files --others --exclude-from=.gitignore
+!.keep
+
+# Docker specific
+.docker/
+.dockerignore
+.dockerenv
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# System files
+Thumbs.db
+ehthumbs.db
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

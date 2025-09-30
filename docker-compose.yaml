@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  docker-mcp:
+    image: docker-mcp:1.0.0
+    container_name: docker-mcp
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

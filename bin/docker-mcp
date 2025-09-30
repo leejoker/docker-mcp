@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/server/stdio_server'
+
+stdio_server = DockerMCP::StdioServer.new
+stdio_server.start_server
