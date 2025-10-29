@@ -12,10 +12,12 @@ Docker-MCP is a Ruby-based server that provides Model Context Protocol (MCP) too
 - **Container Ready**: Dockerfile and docker-compose configuration included
 - **Stdio Interface**: Communicates via standard input/output streams
 - **Container Creation**: Create and manage containers with configurable ports
+- **Image Management**: Pull, list, and remove Docker images
+- **Container Management**: List, inspect, and create Docker containers
 
 ## 📋 Prerequisites
 
-- Ruby 3.4+ (uses the `timbru31/ruby-node:3.4-slim-iron` Docker base image)
+- Ruby 3.4+
 - Docker API access (ensure Docker daemon is running)
 - Node.js (for supergateway dependency)
 
@@ -31,14 +33,23 @@ Docker-MCP is a Ruby-based server that provides Model Context Protocol (MCP) too
 
 2. Install dependencies:
    ```bash
-   gem install docker-mcp
-   # or
+   gem install bundler # if not already installed
    bundle install
    ```
 
 3. Install supergateway (for HTTP interface):
    ```bash
    npm install -g supergateway
+   ```
+
+4. Run the server directly:
+   ```bash
+   ./bin/docker-mcp
+   ```
+   
+   Or use supergateway to expose as HTTP:
+   ```bash
+   supergateway --stdio "./bin/docker-mcp" --port 8080 --baseUrl "http://localhost:8080" --ssePath "/sse" --messagePath "/message"
    ```
 
 ### Using Docker
@@ -59,12 +70,14 @@ Or use the provided docker-compose file:
 docker-compose up -d
 ```
 
-## ⚙️ Configuration
+## ⚙️ Dependencies
 
-The service runs on port 8080 by default and is exposed via the supergateway with the following endpoints:
-- Base URL: `http://localhost:8080`
-- SSE Path: `/sse`
-- Message Path: `/message`
+This project relies on the following key dependencies:
+
+- `docker-api` gem: Provides Ruby interface to communicate with Docker daemon
+- `fast-mcp` gem: Implements the Model Context Protocol standard
+- `supergateway`: Allows stdio-to-HTTP communication for MCP interaction
+- `timbru31/ruby-node:3.4-slim-iron`: Base Docker image with Ruby 3.4 and Node.js
 
 ## 🛠 Available Tools
 
@@ -139,10 +152,14 @@ lib/
     └── container.rb      # Container management tools
 ```
 
-The server uses:
-- `fast-mcp` gem for MCP protocol implementation
-- `docker-api` gem for Docker interactions
-- `supergateway` for stdio-to-HTTP communication
+### Core Components
+
+- **StdioServer**: The main server class that registers all MCP tools and starts the server
+- **PingTool**: Simple health check functionality
+- **DockerTools**: Namespace containing all Docker-related tools
+- **DockerVersion & DockerInfo**: Service information tools
+- **Image Tools**: Image listing, pulling, and removal tools
+- **Container Tools**: Container listing, inspection, and creation tools
 
 ## 🧪 Usage Examples
 
@@ -234,6 +251,41 @@ To run the server locally for development:
 
 This will start the stdio server which can be connected to via supergateway for HTTP access.
 
+## 🧪 Testing
+
+To run the project tests (if any exist):
+```bash
+bundle exec rake test
+# or
+rspec
+```
+
+## 🔐 Docker Access Configuration
+
+For Docker API access, ensure the Docker daemon is running and accessible. You may need to run the container with additional privileges:
+
+```bash
+# When running Docker container directly
+docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped --privileged -v /var/run/docker.sock:/var/run/docker.sock docker-mcp:1.0.0
+```
+
+Or update your docker-compose.yaml:
+
+```yaml
+version: '3'
+
+services:
+  docker-mcp:
+    image: docker-mcp:1.0.0
+    container_name: docker-mcp
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    privileged: true
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -246,7 +298,7 @@ This will start the stdio server which can be connected to via supergateway for 
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 👤 Author
 

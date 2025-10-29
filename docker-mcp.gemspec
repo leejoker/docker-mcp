@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   end
   s.extra_rdoc_files = %w[README.md LICENSE]
   s.homepage = 'https://github.com/leejoker/docker-mcp'
-  s.license = 'MIT'
+  s.license = 'Apache-2.0'
 
   s.add_dependency 'docker-api'
   s.add_dependency 'fast-mcp'

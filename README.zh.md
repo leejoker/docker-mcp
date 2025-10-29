@@ -10,10 +10,12 @@ Docker-MCP 是一个基于 Ruby 的服务器，提供用于与 Docker 服务交�
 - **容器支持**: 包含 Dockerfile 和 docker-compose 配置
 - **Stdio 接口**: 通过标准输入/输出流进行通信
 - **容器创建**: 创建和管理具有可配置端口的容器
+- **镜像管理**: 拉取、列出和删除 Docker 镜像
+- **容器管理**: 列出、检查和创建 Docker 容器
 
 ## 📋 前置要求
 
-- Ruby 3.4+ (使用 `timbru31/ruby-node:3.4-slim-iron` Docker 基础镜像)
+- Ruby 3.4+
 - Docker API 访问权限 (确保 Docker 守护进程正在运行)
 - Node.js (用于 supergateway 依赖)
 
@@ -29,14 +31,23 @@ Docker-MCP 是一个基于 Ruby 的服务器，提供用于与 Docker 服务交�
 
 2. 安装依赖:
    ```bash
-   gem install docker-mcp
-   # 或者
+   gem install bundler # 如果尚未安装
    bundle install
    ```
 
 3. 安装 supergateway (用于 HTTP 接口):
    ```bash
    npm install -g supergateway
+   ```
+
+4. 直接运行服务器:
+   ```bash
+   ./bin/docker-mcp
+   ```
+   
+   或使用 supergateway 暴露为 HTTP:
+   ```bash
+   supergateway --stdio "./bin/docker-mcp" --port 8080 --baseUrl "http://localhost:8080" --ssePath "/sse" --messagePath "/message"
    ```
 
 ### 使用 Docker
@@ -57,12 +68,14 @@ docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped docker-mcp
 docker-compose up -d
 ```
 
-## ⚙️ 配置
+## ⚙️ 依赖项
 
-服务默认运行在 8080 端口，并通过 supergateway 暴露以下端点:
-- 基础 URL: `http://localhost:8080`
-- SSE 路径: `/sse`
-- 消息路径: `/message`
+该项目依赖于以下关键组件：
+
+- `docker-api` gem: 提供与 Docker 守护进程通信的 Ruby 接口
+- `fast-mcp` gem: 实现模型上下文协议标准
+- `supergateway`: 允许 stdio 到 HTTP 通信以进行 MCP 交互
+- `timbru31/ruby-node:3.4-slim-iron`: 包含 Ruby 3.4 和 Node.js 的基础 Docker 镜像
 
 ## 🛠 可用工具
 
@@ -137,10 +150,14 @@ lib/
     └── container.rb      # 容器管理工具
 ```
 
-服务器使用:
-- `fast-mcp` gem 实现 MCP 协议
-- `docker-api` gem 进行 Docker 交互
-- `supergateway` 进行 stdio 到 HTTP 的通信
+### 核心组件
+
+- **StdioServer**: 注册所有 MCP 工具并启动服务器的主服务器类
+- **PingTool**: 简单的健康检查功能
+- **DockerTools**: 包含所有 Docker 相关工具的命名空间
+- **DockerVersion & DockerInfo**: 服务信息工具
+- **镜像工具**: 镜像列表、拉取和删除工具
+- **容器工具**: 容器列表、检查和创建工具
 
 ## 🧪 使用示例
 
@@ -232,6 +249,41 @@ lib/
 
 这将启动 stdio 服务器，可通过 supergateway 连接以获得 HTTP 访问。
 
+## 🧪 测试
+
+运行项目测试 (如果存在):
+```bash
+bundle exec rake test
+# 或
+rspec
+```
+
+## 🔐 Docker 访问配置
+
+对于 Docker API 访问，请确保 Docker 守护进程正在运行且可访问。您可能需要以额外权限运行容器：
+
+```bash
+# 直接运行 Docker 容器时
+docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped --privileged -v /var/run/docker.sock:/var/run/docker.sock docker-mcp:1.0.0
+```
+
+或更新您的 docker-compose.yaml:
+
+```yaml
+version: '3'
+
+services:
+  docker-mcp:
+    image: docker-mcp:1.0.0
+    container_name: docker-mcp
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    privileged: true
+```
+
 ## 🤝 贡献
 
 1. Fork 仓库
@@ -244,7 +296,7 @@ lib/
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 详情请参见 [LICENSE](LICENSE) 文件。
+本项目采用 Apache 许可证 2.0 版 - 详情请参见 [LICENSE](LICENSE) 文件。
 
 ## 👤 作者
 
