@@ -125,15 +125,18 @@ docker-compose up -d
   - 参数: `id` (必填字符串) - 容器 ID
   - 返回: 详细的容器信息
 
-- **ContainerCreate**: 使用镜像和端口配置创建新容器
-  - 描述: `create container with image name and tag`
+- **ContainerCreate**: 使用镜像、端口和可选配置创建新容器
+  - 描述: `create container with image name, tag, and optional configurations for volumes, tty, and stdin`
   - 参数:
     - `image` (必填字符串) - 镜像名称
     - `tag` (必填字符串) - 镜像标签
     - `port` (必填字符串) - 要暴露的容器端口
     - `target_port` (必填字符串) - 要绑定到的主机端口
+    - `volumes` (可选字符串) - 卷映射，格式为字符串并用逗号分隔 (例如 "/host/path1:/container/path1,/host/path2:/container/path2")
+    - `tty` (可选布尔值) - 分配伪TTY (默认: true)
+    - `open_stdin` (可选布尔值) - 保持STDIN开启即使未连接 (默认: true)
   - 返回: 创建后的容器信息
-  - 注意: 容器将以启用 TTY、连接标准输入和自动删除的方式创建
+  - 注意: 容器将以自动删除、可配置的TTY/stdin选项和卷映射的方式创建
 
 ## 🏗️ 架构
 
@@ -222,6 +225,25 @@ lib/
         "tag": "latest",
         "port": "80",
         "target_port": "8080"
+      }
+    }
+  }
+  ```
+
+- **使用卷映射和自定义选项创建容器**:
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "container_create",
+      "arguments": {
+        "image": "nginx",
+        "tag": "latest",
+        "port": "80",
+        "target_port": "8080",
+        "volumes": "/host/data:/usr/share/nginx/html",
+        "tty": true,
+        "open_stdin": true
       }
     }
   }

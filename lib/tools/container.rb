@@ -26,23 +26,26 @@ module DockerMCP
     end
 
     class ContainerCreate < FastMcp::Tool
-      description 'create container with image name and tag'
+      description 'create container with image name, tag, and optional configurations for volumes, tty, and stdin'
 
       arguments do
         required(:image).filled(:string).description('image name')
         required(:tag).filled(:string).description('image tag')
         required(:port).filled(:string).description('port')
         required(:target_port).filled(:string).description('target port')
+        optional(:volumes).filled(:string).description('volume mappings in format as string')
+        optional(:tty).value(:bool).description('allocate a pseudo-TTY (default: true)')
+        optional(:open_stdin).value(:bool).description('keep STDIN open even if not attached (default: true)')
       end
 
-      def call(image:, tag:, port:, target_port:)
+      def call(image:, tag:, port:, target_port:, volumes: nil, tty: true, open_stdin: true)
         begin
           # 创建容器配置
           container_config = {
             'Image' => "#{image}:#{tag}",
-            'Tty' => true, # 对应 -t 参数
-            'OpenStdin' => true, # 对应 -i 参数
-            'AttachStdin' => true,
+            'Tty' => tty, # 对应 -t 参数
+            'OpenStdin' => open_stdin, # 对应 -i 参数
+            'AttachStdin' => open_stdin,
             'AttachStdout' => true,
             'AttachStderr' => true,
             'HostConfig' => {
@@ -56,6 +59,14 @@ module DockerMCP
               }
             }
           }
+
+          # 添加卷挂载配置
+          if volumes && !volumes.to_s.strip.empty?
+            # volumes is now a string, split by comma to create the bindings array
+            volume_bindings = volumes.to_s.split(',')
+            container_config['HostConfig']['Binds'] = volume_bindings
+          end
+
           # 创建容器
           container = Docker::Container.create(container_config)
           puts "容器创建成功，ID: #{container.id}"

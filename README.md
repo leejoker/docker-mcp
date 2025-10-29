@@ -127,15 +127,18 @@ The server provides the following Docker MCP tools:
   - Arguments: `id` (required string) - Container ID
   - Returns: Detailed container information
 
-- **ContainerCreate**: Create a new container with image and port configuration
-  - Description: `create container with image name and tag`
+- **ContainerCreate**: Create a new container with image, port, and optional configurations
+  - Description: `create container with image name, tag, and optional configurations for volumes, tty, and stdin`
   - Arguments: 
     - `image` (required string) - Image name
     - `tag` (required string) - Image tag
     - `port` (required string) - Container port to expose
     - `target_port` (required string) - Host port to bind to
+    - `volumes` (optional string) - Volume mappings in format as string separated by commas (e.g., "/host/path1:/container/path1,/host/path2:/container/path2")
+    - `tty` (optional bool) - Allocate a pseudo-TTY (default: true)
+    - `open_stdin` (optional bool) - Keep STDIN open even if not attached (default: true)
   - Returns: Container information after creation
-  - Notes: The container is created with TTY enabled, stdin attached, and auto-removal enabled
+  - Notes: The container is created with auto-removal enabled and configurable TTY/stdin options and volume mappings
 
 ## 🏗️ Architecture
 
@@ -224,6 +227,25 @@ Once the server is running, you can interact with it using an MCP client. Here a
         "tag": "latest",
         "port": "80",
         "target_port": "8080"
+      }
+    }
+  }
+  ```
+
+- **ContainerCreate with volume mapping and custom options**:
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "container_create",
+      "arguments": {
+        "image": "nginx",
+        "tag": "latest",
+        "port": "80",
+        "target_port": "8080",
+        "volumes": "/host/data:/usr/share/nginx/html",
+        "tty": true,
+        "open_stdin": true
       }
     }
   }
