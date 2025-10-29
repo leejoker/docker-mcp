@@ -2,21 +2,22 @@
 
 Docker-MCP 是一个基于 Ruby 的服务器，提供用于与 Docker 服务交互的模型上下文协议 (MCP) 工具。它允许外部客户端通过标准的 MCP 接口执行 Docker 操作，如管理镜像、容器和获取 Docker 服务信息。
 
-## 功能特性
+## 🚀 功能特性
 
 - **Docker 操作**: 远程管理 Docker 镜像和容器
 - **服务信息**: 获取 Docker 服务版本和系统信息
 - **MCP 标准**: 实现模型上下文协议以进行标准化交互
 - **容器支持**: 包含 Dockerfile 和 docker-compose 配置
 - **Stdio 接口**: 通过标准输入/输出流进行通信
+- **容器创建**: 创建和管理具有可配置端口的容器
 
-## 前置要求
+## 📋 前置要求
 
 - Ruby 3.4+ (使用 `timbru31/ruby-node:3.4-slim-iron` Docker 基础镜像)
-- Docker API 访问权限
+- Docker API 访问权限 (确保 Docker 守护进程正在运行)
 - Node.js (用于 supergateway 依赖)
 
-## 安装
+## 🛠️ 安装
 
 ### 本地安装
 
@@ -31,6 +32,11 @@ Docker-MCP 是一个基于 Ruby 的服务器，提供用于与 Docker 服务交�
    gem install docker-mcp
    # 或者
    bundle install
+   ```
+
+3. 安装 supergateway (用于 HTTP 接口):
+   ```bash
+   npm install -g supergateway
    ```
 
 ### 使用 Docker
@@ -51,14 +57,14 @@ docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped docker-mcp
 docker-compose up -d
 ```
 
-## 配置
+## ⚙️ 配置
 
 服务默认运行在 8080 端口，并通过 supergateway 暴露以下端点:
 - 基础 URL: `http://localhost:8080`
 - SSE 路径: `/sse`
 - 消息路径: `/message`
 
-## 可用工具
+## 🛠 可用工具
 
 服务器提供以下 Docker MCP 工具:
 
@@ -106,7 +112,17 @@ docker-compose up -d
   - 参数: `id` (必填字符串) - 容器 ID
   - 返回: 详细的容器信息
 
-## 架构
+- **ContainerCreate**: 使用镜像和端口配置创建新容器
+  - 描述: `create container with image name and tag`
+  - 参数:
+    - `image` (必填字符串) - 镜像名称
+    - `tag` (必填字符串) - 镜像标签
+    - `port` (必填字符串) - 要暴露的容器端口
+    - `target_port` (必填字符串) - 要绑定到的主机端口
+  - 返回: 创建后的容器信息
+  - 注意: 容器将以启用 TTY、连接标准输入和自动删除的方式创建
+
+## 🏗️ 架构
 
 项目结构如下:
 
@@ -126,7 +142,75 @@ lib/
 - `docker-api` gem 进行 Docker 交互
 - `supergateway` 进行 stdio 到 HTTP 的通信
 
-## 开发
+## 🧪 使用示例
+
+### 与 MCP 客户端一起使用
+
+服务器运行后，您可以使用 MCP 客户端与之交互。以下是调用示例：
+
+- **PingTool**: 检查服务器状态
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "ping_tool",
+      "arguments": {}
+    }
+  }
+  ```
+
+- **DockerVersion**: 获取 Docker 版本
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "docker_version",
+      "arguments": {}
+    }
+  }
+  ```
+
+- **ImageList**: 列出所有镜像
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "image_list",
+      "arguments": {}
+    }
+  }
+  ```
+
+- **ImagePull**: 拉取指定镜像
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "image_pull",
+      "arguments": {
+        "url": "nginx:latest"
+      }
+    }
+  }
+  ```
+
+- **ContainerCreate**: 创建新容器
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "container_create",
+      "arguments": {
+        "image": "nginx",
+        "tag": "latest",
+        "port": "80",
+        "target_port": "8080"
+      }
+    }
+  }
+  ```
+
+## 🚀 开发
 
 在本地运行服务器进行开发:
 
@@ -136,30 +220,37 @@ lib/
    npm install -g supergateway
    ```
 
-2. 运行服务器:
+2. 直接运行服务器:
    ```bash
    ./bin/docker-mcp
+   ```
+   
+   或使用 supergateway 暴露为 HTTP:
+   ```bash
+   supergateway --stdio "./bin/docker-mcp" --port 8080 --baseUrl "http://localhost:8080" --ssePath "/sse" --messagePath "/message"
    ```
 
 这将启动 stdio 服务器，可通过 supergateway 连接以获得 HTTP 访问。
 
-## 贡献
+## 🤝 贡献
 
 1. Fork 仓库
-2. 创建功能分支
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
 3. 进行更改
 4. 如适用，添加测试
-5. 提交拉取请求
+5. 提交更改 (`git commit -m 'Add some amazing feature'`)
+6. 推送到分支 (`git push origin feature/amazing-feature`)
+7. 提交拉取请求
 
-## 许可证
+## 📄 许可证
 
 本项目采用 MIT 许可证 - 详情请参见 [LICENSE](LICENSE) 文件。
 
-## 作者
+## 👤 作者
 
 - **leejoker** - [GitHub](https://github.com/leejoker)
 
-## 致谢
+## 🙏 致谢
 
 - 使用 [fast-mcp](https://github.com/fast-mcp/fast-mcp) - 用于模型上下文协议的 Ruby gem
 - 使用 [docker-api](https://github.com/swipely/docker-api) 进行 Docker 交互

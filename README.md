@@ -4,21 +4,22 @@ Docker-MCP is a Ruby-based server that provides Model Context Protocol (MCP) too
 
 阅读此文档的其他语言版本: [中文版](README.zh.md)
 
-## Features
+## 🚀 Features
 
 - **Docker Operations**: Manage Docker images and containers remotely
 - **Service Information**: Get Docker service version and system information
 - **MCP Standard**: Implements the Model Context Protocol for standardized interactions
 - **Container Ready**: Dockerfile and docker-compose configuration included
 - **Stdio Interface**: Communicates via standard input/output streams
+- **Container Creation**: Create and manage containers with configurable ports
 
-## Prerequisites
+## 📋 Prerequisites
 
 - Ruby 3.4+ (uses the `timbru31/ruby-node:3.4-slim-iron` Docker base image)
-- Docker API access
+- Docker API access (ensure Docker daemon is running)
 - Node.js (for supergateway dependency)
 
-## Installation
+## 🛠️ Installation
 
 ### Local Installation
 
@@ -33,6 +34,11 @@ Docker-MCP is a Ruby-based server that provides Model Context Protocol (MCP) too
    gem install docker-mcp
    # or
    bundle install
+   ```
+
+3. Install supergateway (for HTTP interface):
+   ```bash
+   npm install -g supergateway
    ```
 
 ### Using Docker
@@ -53,14 +59,14 @@ Or use the provided docker-compose file:
 docker-compose up -d
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 The service runs on port 8080 by default and is exposed via the supergateway with the following endpoints:
 - Base URL: `http://localhost:8080`
 - SSE Path: `/sse`
 - Message Path: `/message`
 
-## Available Tools
+## 🛠 Available Tools
 
 The server provides the following Docker MCP tools:
 
@@ -108,7 +114,17 @@ The server provides the following Docker MCP tools:
   - Arguments: `id` (required string) - Container ID
   - Returns: Detailed container information
 
-## Architecture
+- **ContainerCreate**: Create a new container with image and port configuration
+  - Description: `create container with image name and tag`
+  - Arguments: 
+    - `image` (required string) - Image name
+    - `tag` (required string) - Image tag
+    - `port` (required string) - Container port to expose
+    - `target_port` (required string) - Host port to bind to
+  - Returns: Container information after creation
+  - Notes: The container is created with TTY enabled, stdin attached, and auto-removal enabled
+
+## 🏗️ Architecture
 
 The project is structured as follows:
 
@@ -128,7 +144,75 @@ The server uses:
 - `docker-api` gem for Docker interactions
 - `supergateway` for stdio-to-HTTP communication
 
-## Development
+## 🧪 Usage Examples
+
+### Using with an MCP client
+
+Once the server is running, you can interact with it using an MCP client. Here are example calls:
+
+- **PingTool**: Check server status
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "ping_tool",
+      "arguments": {}
+    }
+  }
+  ```
+
+- **DockerVersion**: Get Docker version
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "docker_version",
+      "arguments": {}
+    }
+  }
+  ```
+
+- **ImageList**: List all images
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "image_list",
+      "arguments": {}
+    }
+  }
+  ```
+
+- **ImagePull**: Pull a specific image
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "image_pull",
+      "arguments": {
+        "url": "nginx:latest"
+      }
+    }
+  }
+  ```
+
+- **ContainerCreate**: Create a new container
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "container_create",
+      "arguments": {
+        "image": "nginx",
+        "tag": "latest",
+        "port": "80",
+        "target_port": "8080"
+      }
+    }
+  }
+  ```
+
+## 🚀 Development
 
 To run the server locally for development:
 
@@ -138,30 +222,37 @@ To run the server locally for development:
    npm install -g supergateway
    ```
 
-2. Run the server:
+2. Run the server directly:
    ```bash
    ./bin/docker-mcp
+   ```
+   
+   Or use supergateway to expose as HTTP:
+   ```bash
+   supergateway --stdio "./bin/docker-mcp" --port 8080 --baseUrl "http://localhost:8080" --ssePath "/sse" --messagePath "/message"
    ```
 
 This will start the stdio server which can be connected to via supergateway for HTTP access.
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests if applicable
-5. Submit a pull request
+5. Commit your changes (`git commit -m 'Add some amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a pull request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Author
+## 👤 Author
 
 - **leejoker** - [GitHub](https://github.com/leejoker)
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - Built with [fast-mcp](https://github.com/fast-mcp/fast-mcp) - A Ruby gem for Model Context Protocol
 - Uses [docker-api](https://github.com/swipely/docker-api) for Docker interactions
