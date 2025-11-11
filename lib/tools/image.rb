@@ -59,7 +59,7 @@ module DockerMCP
     end
 
     class ImageSave < FastMcp::Tool
-      description 'save an docker image to local'
+      description 'save or export an docker image to local'
 
       arguments do
         required(:url).filled(:string).description('docker image url')
