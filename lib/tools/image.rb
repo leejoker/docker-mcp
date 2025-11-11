@@ -57,5 +57,19 @@ module DockerMCP
         end
       end
     end
+
+    class ImageSave < FastMcp::Tool
+      description 'save an docker image to local'
+
+      arguments do
+        required(:url).filled(:string).description('docker image url')
+        required(:file).filled(:string).description('save file path')
+      end
+
+      def call(url:, file:)
+        path = Docker::Image.save(url, file)
+        { "image_path" => path }.to_json
+      end
+    end
   end
 end
