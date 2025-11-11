@@ -67,8 +67,8 @@ module DockerMCP
       end
 
       def call(url:, file:)
-        path = Docker::Image.save(url, file)
-        { "image_path" => path }.to_json
+        Docker::Image.save(url, file)
+        { "image_path" => file }.to_json
       end
     end
   end
