@@ -62,10 +62,26 @@ docker build -t docker-mcp:1.0.0 .
 docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped docker-mcp:1.0.0
 ```
 
-或使用提供的 docker-compose 文件:
+或使用提供的 docker-compose 文件 (注意: 您可能需要更新它以包含 Docker 套接字挂载以实现完整功能):
 
 ```bash
 docker-compose up -d
+```
+
+**重要**: 为确保 Docker-MCP 可以与您的 Docker 守护进程通信，您可能需要在 docker-compose.yaml 文件中添加 Docker 套接字卷挂载:
+
+```yaml
+version: '3'
+
+services:
+  docker-mcp:
+    image: docker-mcp:1.0.0
+    container_name: docker-mcp
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker API 访问所必需
+    restart: unless-stopped
 ```
 
 ## ⚙️ 依赖项
@@ -74,7 +90,7 @@ docker-compose up -d
 
 - `docker-api` gem: 提供与 Docker 守护进程通信的 Ruby 接口
 - `fast-mcp` gem: 实现模型上下文协议标准
-- `supergateway`: 允许 stdio 到 HTTP 通信以进行 MCP 交互
+- `supergateway`: 允许 stdio 到 HTTP 通信以进行 MCP 交互 (在使用 HTTP 接口时作为运行时依赖)
 - `timbru31/ruby-node:3.4-slim-iron`: 包含 Ruby 3.4 和 Node.js 的基础 Docker 镜像
 
 ## 🛠 可用工具
@@ -114,6 +130,13 @@ docker-compose up -d
   - 描述: `remove an docker image by id`
   - 参数: `id` (必填字符串) - Docker 镜像 ID
   - 返回: 已删除镜像的信息
+
+- **ImageSave**: 保存或导出 Docker 镜像到本地文件
+  - 描述: `save or export an docker image to local`
+  - 参数: 
+    - `url` (必填字符串) - Docker 镜像 URL
+    - `file` (必填字符串) - 保存镜像的本地文件路径
+  - 返回: 包含已保存镜像路径的对象
 
 ### 容器管理
 - **ContainerList**: 列出所有 Docker 容器
@@ -155,7 +178,7 @@ lib/
 
 ### 核心组件
 
-- **StdioServer**: 注册所有 MCP 工具并启动服务器的主服务器类
+- **StdioServer**: 动态发现并注册所有 MCP 工具，然后启动服务器的主服务器类
 - **PingTool**: 简单的健康检查功能
 - **DockerTools**: 包含所有 Docker 相关工具的命名空间
 - **DockerVersion & DockerInfo**: 服务信息工具
@@ -209,6 +232,20 @@ lib/
       "name": "image_pull",
       "arguments": {
         "url": "nginx:latest"
+      }
+    }
+  }
+  ```
+
+- **ImageSave**: 将 Docker 镜像保存到本地文件
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "image_save",
+      "arguments": {
+        "url": "nginx:latest",
+        "file": "/tmp/nginx.tar"
       }
     }
   }
@@ -282,14 +319,14 @@ rspec
 
 ## 🔐 Docker 访问配置
 
-对于 Docker API 访问，请确保 Docker 守护进程正在运行且可访问。您可能需要以额外权限运行容器：
+对于 Docker API 访问，请确保 Docker 守护进程正在运行且可访问。您必须挂载 Docker 套接字以允许容器与主机 Docker 守护进程通信：
 
 ```bash
 # 直接运行 Docker 容器时
-docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped --privileged -v /var/run/docker.sock:/var/run/docker.sock docker-mcp:1.0.0
+docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock docker-mcp:1.0.0
 ```
 
-或更新您的 docker-compose.yaml:
+或在您的 docker-compose.yaml 中更新所需的卷挂载:
 
 ```yaml
 version: '3'
@@ -303,7 +340,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-    privileged: true
 ```
 
 ## 🤝 贡献

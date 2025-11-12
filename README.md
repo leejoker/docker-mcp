@@ -64,10 +64,26 @@ docker build -t docker-mcp:1.0.0 .
 docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped docker-mcp:1.0.0
 ```
 
-Or use the provided docker-compose file:
+Or use the provided docker-compose file (note: you may need to update it to include the Docker socket mount for full functionality):
 
 ```bash
 docker-compose up -d
+```
+
+**Important**: To ensure Docker-MCP can communicate with your Docker daemon, you'll likely need to add the Docker socket volume mount to your docker-compose.yaml file:
+
+```yaml
+version: '3'
+
+services:
+  docker-mcp:
+    image: docker-mcp:1.0.0
+    container_name: docker-mcp
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Required for Docker API access
+    restart: unless-stopped
 ```
 
 ## ⚙️ Dependencies
@@ -76,7 +92,7 @@ This project relies on the following key dependencies:
 
 - `docker-api` gem: Provides Ruby interface to communicate with Docker daemon
 - `fast-mcp` gem: Implements the Model Context Protocol standard
-- `supergateway`: Allows stdio-to-HTTP communication for MCP interaction
+- `supergateway`: Allows stdio-to-HTTP communication for MCP interaction (runtime dependency when using HTTP interface)
 - `timbru31/ruby-node:3.4-slim-iron`: Base Docker image with Ruby 3.4 and Node.js
 
 ## 🛠 Available Tools
@@ -116,6 +132,13 @@ The server provides the following Docker MCP tools:
   - Description: `remove an docker image by id`
   - Arguments: `id` (required string) - Docker image ID
   - Returns: Information about the removed image
+
+- **ImageSave**: Save or export a Docker image to local file
+  - Description: `save or export an docker image to local`
+  - Arguments: 
+    - `url` (required string) - Docker image URL
+    - `file` (required string) - Local file path to save the image
+  - Returns: Object with the saved image path
 
 ### Container Management
 - **ContainerList**: List all Docker containers
@@ -157,7 +180,7 @@ lib/
 
 ### Core Components
 
-- **StdioServer**: The main server class that registers all MCP tools and starts the server
+- **StdioServer**: The main server class that dynamically discovers and registers all MCP tools, then starts the server
 - **PingTool**: Simple health check functionality
 - **DockerTools**: Namespace containing all Docker-related tools
 - **DockerVersion & DockerInfo**: Service information tools
@@ -211,6 +234,20 @@ Once the server is running, you can interact with it using an MCP client. Here a
       "name": "image_pull",
       "arguments": {
         "url": "nginx:latest"
+      }
+    }
+  }
+  ```
+
+- **ImageSave**: Save a Docker image to a local file
+  ```json
+  {
+    "method": "call_tool",
+    "params": {
+      "name": "image_save",
+      "arguments": {
+        "url": "nginx:latest",
+        "file": "/tmp/nginx.tar"
       }
     }
   }
@@ -284,14 +321,14 @@ rspec
 
 ## 🔐 Docker Access Configuration
 
-For Docker API access, ensure the Docker daemon is running and accessible. You may need to run the container with additional privileges:
+For Docker API access, ensure the Docker daemon is running and accessible. You must mount the Docker socket to allow the container to communicate with the host Docker daemon:
 
 ```bash
 # When running Docker container directly
-docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped --privileged -v /var/run/docker.sock:/var/run/docker.sock docker-mcp:1.0.0
+docker run -d --name docker-mcp -p 8080:8080 --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock docker-mcp:1.0.0
 ```
 
-Or update your docker-compose.yaml:
+Or update your docker-compose.yaml with the required volume mount:
 
 ```yaml
 version: '3'
@@ -305,7 +342,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-    privileged: true
 ```
 
 ## 🤝 Contributing
