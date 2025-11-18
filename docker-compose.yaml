@@ -4,6 +4,11 @@ services:
   docker-mcp:
     image: docker-mcp:1.0.0
     container_name: docker-mcp
+    environment:
+      - CONTAINER_TYPE=containerd
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/containerd/containerd.sock:/var/run/containerd/containerd.sock
     ports:
       - "8080:8080"
     restart: unless-stopped
