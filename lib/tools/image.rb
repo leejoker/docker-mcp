@@ -5,6 +5,7 @@ require 'docker'
 
 module DockerMCP
   module DockerTools
+    # Image info tool
     class ImageList < FastMcp::Tool
       description 'show all docker image info'
 
@@ -13,6 +14,7 @@ module DockerMCP
       end
     end
 
+    # Image pull tool
     class ImagePull < FastMcp::Tool
       description 'pull an docker image with specified url and then return the image info'
 
@@ -26,6 +28,7 @@ module DockerMCP
       end
     end
 
+    # Image remove by id tool
     class ImageRemoveById < FastMcp::Tool
       description 'remove an docker image by id'
 
@@ -40,6 +43,7 @@ module DockerMCP
       end
     end
 
+    # Image remove tool
     class ImageRemove < FastMcp::Tool
       description 'remove an docker image with specified url then return the image info, url format is [repo:tag]'
 
@@ -58,6 +62,7 @@ module DockerMCP
       end
     end
 
+    # Image save tool
     class ImageSave < FastMcp::Tool
       description 'save or export an docker image to local'
 
@@ -68,7 +73,7 @@ module DockerMCP
 
       def call(url:, file:)
         Docker::Image.save(url, file)
-        { "image_path" => file }.to_json
+        { 'image_path' => file }.to_json
       end
     end
   end

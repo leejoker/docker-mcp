@@ -5,6 +5,7 @@ require 'docker'
 
 module DockerMCP
   module DockerTools
+    # Container tools
     class ContainerList < FastMcp::Tool
       description 'show all docker containers info'
 
@@ -13,6 +14,7 @@ module DockerMCP
       end
     end
 
+    # Container info tool
     class ContainerInfo < FastMcp::Tool
       description 'show container info by container id'
 
@@ -25,6 +27,7 @@ module DockerMCP
       end
     end
 
+    # Container create tool
     class ContainerCreate < FastMcp::Tool
       description 'create container with image name, tag, and optional configurations for volumes, tty, and stdin'
 
@@ -38,49 +41,48 @@ module DockerMCP
         optional(:open_stdin).value(:bool).description('keep STDIN open even if not attached (default: true)')
       end
 
-      def call(image:, tag:, port:, target_port:, volumes: nil, tty: true, open_stdin: true)
-        begin
-          # 创建容器配置
-          container_config = {
-            'Image' => "#{image}:#{tag}",
-            'Tty' => tty, # 对应 -t 参数
-            'OpenStdin' => open_stdin, # 对应 -i 参数
-            'AttachStdin' => open_stdin,
-            'AttachStdout' => true,
-            'AttachStderr' => true,
-            'HostConfig' => {
-              'AutoRemove' => true, # 对应 --rm 参数
-              'PortBindings' => {
-                "#{port}/tcp" => [
-                  {
-                    'HostPort' => "#{target_port}"
-                  }
-                ]
-              }
+      # Create a container
+      def call(image:, tag:, port:, target_port:, volumes: nil, tty: true, open_stdin: true) # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/ParameterLists
+        # 创建容器配置
+        container_config = {
+          'Image' => "#{image}:#{tag}",
+          'Tty' => tty, # 对应 -t 参数
+          'OpenStdin' => open_stdin, # 对应 -i 参数
+          'AttachStdin' => open_stdin,
+          'AttachStdout' => true,
+          'AttachStderr' => true,
+          'HostConfig' => {
+            'AutoRemove' => true, # 对应 --rm 参数
+            'PortBindings' => {
+              "#{port}/tcp" => [
+                {
+                  'HostPort' => target_port.to_s
+                }
+              ]
             }
           }
+        }
 
-          # 添加卷挂载配置
-          if volumes && !volumes.to_s.strip.empty?
-            # volumes is now a string, split by comma to create the bindings array
-            volume_bindings = volumes.to_s.split(',')
-            container_config['HostConfig']['Binds'] = volume_bindings
-          end
-
-          # 创建容器
-          container = Docker::Container.create(container_config)
-          puts "容器创建成功，ID: #{container.id}"
-          # 启动容器
-          container.start
-          puts "容器启动成功"
-          container.to_json
-        rescue Docker::Error::NotFoundError => e
-          puts "错误：镜像不存在 - #{e.message}"
-        rescue Docker::Error::ServerError => e
-          puts "Docker服务器错误：#{e.message}"
-        rescue StandardError => e
-          puts "发生错误：#{e.message}"
+        # 添加卷挂载配置
+        if volumes && !volumes.to_s.strip.empty?
+          # volumes is now a string, split by comma to create the bindings array
+          volume_bindings = volumes.to_s.split(',')
+          container_config['HostConfig']['Binds'] = volume_bindings
         end
+
+        # 创建容器
+        container = Docker::Container.create(container_config)
+        puts "容器创建成功，ID: #{container.id}"
+        # 启动容器
+        container.start
+        puts '容器启动成功'
+        container.to_json
+      rescue Docker::Error::NotFoundError => e
+        puts "错误：镜像不存在 - #{e.message}"
+      rescue Docker::Error::ServerError => e
+        puts "Docker服务器错误：#{e.message}"
+      rescue StandardError => e
+        puts "发生错误：#{e.message}"
       end
     end
   end

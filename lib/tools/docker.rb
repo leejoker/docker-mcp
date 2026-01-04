@@ -14,6 +14,7 @@ module DockerMCP
       end
     end
 
+    # A simple tool that responds with the info of docker service
     class DockerInfo < FastMcp::Tool
       description 'show the info of docker service'
 
