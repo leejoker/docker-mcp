@@ -20,5 +20,4 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'docker-api'
   s.add_dependency 'fast-mcp'
-  s.add_dependency 'grpc'
 end
