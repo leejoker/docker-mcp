@@ -4,11 +4,21 @@ module DockerMCP
   class GlobalUtils
     class << self
       def container_type
-        ENV['CONTAINER_TYPE']
+        ct = ENV['CONTAINER_TYPE']
+        if ct.nil?
+          "docker"
+        else
+          ct
+        end
       end
 
       def namespace_name
-        ENV['NAMESPACE_NAME']
+        ns = ENV['NAMESPACE_NAME']
+        if ns.nil?
+          "default"
+        else
+          ns
+        end
       end
     end
   end

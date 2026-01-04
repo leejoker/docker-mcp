@@ -28,17 +28,10 @@ module DockerMCP
 
         def image_list(ns)
           stub = load_stub
-          image_map = {}
-          namespaces = ContainerdApi::Namespace.namespace_list
-          ns = GlobalUtils.namespace_name if ns.nil?
-          namespaces.select { |namespace| namespace["name"] == ns }.each do |namespace|
-            namespace_name = namespace["name"]
-            request = Containerd::Services::Images::V1::ListImagesRequest.new
-            resp = stub.list(request, metadata: create_metadata(namespace_name))
-            images = JSON.parse(resp.to_json)
-            image_map[namespace_name] = images['images']
-          end
-          image_map
+          request = Containerd::Services::Images::V1::ListImagesRequest.new
+          resp = stub.list(request, metadata: create_metadata(ns))
+          images = JSON.parse(resp.to_json)
+          images['images']
         end
 
         def get_image(ns, image_name)

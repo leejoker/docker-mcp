@@ -1,16 +1,25 @@
 # frozen_string_literal: true
 
+require_relative '../docker-mcp'
+
 require 'fast_mcp'
 require 'docker'
+require 'containerd/containerd_version'
+require 'util/global_utils'
 
 module DockerMCP
   module DockerTools
     # A simple tool that responds with the version of docker service
     class DockerVersion < FastMcp::Tool
-      description 'show the version of docker service'
+      description 'show the version of docker/containerd service'
 
       def call
-        Docker.version
+        ct = GlobalUtils.container_type
+        if ct == "docker"
+          Docker.version
+        else
+          ContainerdApi::Version.version
+        end
       end
     end
 
@@ -19,7 +28,12 @@ module DockerMCP
       description 'show the info of docker service'
 
       def call
-        Docker.info
+        ct = GlobalUtils.container_type
+        if ct == "docker"
+          Docker.info
+        else
+          nil
+        end
       end
     end
   end
