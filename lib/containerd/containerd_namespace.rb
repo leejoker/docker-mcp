@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require_relative '../docker-mcp'
+require_relative 'containerd_base'
+
 require 'grpc'
 require 'json'
-require_relative 'containerd_base'
-require_relative 'api/services/namespaces/v1/namespace_pb'
-require_relative 'api/services/namespaces/v1/namespace_services_pb'
+require 'github.com/containerd/containerd/api/services/namespaces/v1/namespace_pb'
+require 'github.com/containerd/containerd/api/services/namespaces/v1/namespace_services_pb'
 
 module DockerMCP
   module ContainerdApi

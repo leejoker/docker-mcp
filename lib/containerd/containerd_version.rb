@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-require 'grpc'
+require_relative '../docker-mcp'
 require_relative 'containerd_base'
-require_relative 'api/services/version/v1/version_services_pb'
-require_relative 'api/services/version/v1/version_pb'
+
+require 'grpc'
+require 'github.com/containerd/containerd/api/services/version/v1/version_pb'
+require 'github.com/containerd/containerd/api/services/version/v1/version_services_pb'
 
 module DockerMCP
   module ContainerdApi

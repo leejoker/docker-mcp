@@ -1,9 +1,9 @@
-[submodule "proto/vendor/containerd"]
-	path = proto/vendor/containerd
+[submodule "proto/vendor/github.com/containerd/containerd"]
+	path = proto/vendor/github.com/containerd/containerd
 	url = https://github.com/containerd/containerd.git
-[submodule "proto/vendor/protobuf"]
-	path = proto/vendor/protobuf
-	url = https://github.com/gogo/protobuf.git
-[submodule "proto/vendor/googleapis"]
-	path = proto/vendor/googleapis
+[submodule "proto/vendor/github.com/googleapis/googleapis"]
+	path = proto/vendor/github.com/googleapis/googleapis
 	url = https://github.com/googleapis/googleapis.git
+[submodule "proto/vendor/github.com/gogo/protobuf"]
+	path = proto/vendor/github.com/gogo/protobuf
+	url = https://github.com/gogo/protobuf.git
