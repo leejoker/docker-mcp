@@ -9,10 +9,12 @@ require 'github.com/containerd/containerd/api/services/version/v1/version_servic
 
 module DockerMCP
   module ContainerdApi
+    # Version
     class Version
       class << self
         def version
-          stub = Containerd::Services::Version::V1::Version::Stub.new(ContainerdApi.containerd_sock, :this_channel_is_insecure)
+          stub = Containerd::Services::Version::V1::Version::Stub.new(ContainerdApi.containerd_sock,
+                                                                      :this_channel_is_insecure)
           resp = stub.version(Google::Protobuf::Empty.new)
           resp.to_json
         end

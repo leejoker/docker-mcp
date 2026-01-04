@@ -16,6 +16,7 @@ require 'github.com/containerd/containerd/api/types/platform_pb'
 
 module DockerMCP
   module ContainerdApi
+    # DockerMCP::ContainerdApi::Image
     class Image
       class << self
         def load_stub
@@ -41,31 +42,32 @@ module DockerMCP
           begin
             get_image_resp = stub.get(get_image_req, metadata: create_metadata(ns))
             get_image_resp.image unless get_image_resp.image.nil?
-          rescue => e
+          rescue StandardError => e
             puts e.message
           ensure
-            stub.instance_variable_get(:@ch).close if stub.instance_variable_get(:@ch)
+            stub.instance_variable_get(:@ch)&.close
           end
         end
 
         def image_tag(ns, image_name, tag_name)
           stub = load_stub
           image = get_image(ns, image_name)
-          unless image.nil?
-            image.name = tag_name
-            create_image_req = Containerd::Services::Images::V1::CreateImageRequest.new
-            create_image_req.image = image
-            begin
-              resp = stub.create(create_image_req, metadata: create_metadata(ns))
-              resp.image
-            rescue => e
-              puts e.message
-            end
+          return if image.nil?
+
+          image.name = tag_name
+          create_image_req = Containerd::Services::Images::V1::CreateImageRequest.new
+          create_image_req.image = image
+          begin
+            resp = stub.create(create_image_req, metadata: create_metadata(ns))
+            resp.image
+          rescue StandardError => e
+            puts e.message
           end
         end
 
         def image_pull(ns, image_name)
-          stub = Containerd::Services::Transfer::V1::Transfer::Stub.new(ContainerdApi.containerd_sock, :this_channel_is_insecure)
+          stub = Containerd::Services::Transfer::V1::Transfer::Stub.new(ContainerdApi.containerd_sock,
+                                                                        :this_channel_is_insecure)
 
           source = Containerd::Types::Transfer::OCIRegistry.new
           source.reference = image_name
@@ -94,10 +96,10 @@ module DockerMCP
 
           source_any = Google::Protobuf::Any.new
           source_any.value = source.to_proto
-          source_any.type_url = "#{source.class.descriptor.name}"
+          source_any.type_url = source.class.descriptor.name.to_s
 
           destination_any = Google::Protobuf::Any.new
-          destination_any.type_url = "#{destination.class.descriptor.name}"
+          destination_any.type_url = destination.class.descriptor.name.to_s
           destination_any.value = destination.to_proto
 
           request = Containerd::Services::Transfer::V1::TransferRequest.new
@@ -107,7 +109,7 @@ module DockerMCP
 
           begin
             stub.transfer(request, metadata: create_metadata(ns))
-          rescue => e
+          rescue StandardError => e
             puts e.message
           end
         end

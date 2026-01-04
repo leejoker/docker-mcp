@@ -6,7 +6,7 @@ module DockerMCP
       def container_type
         ct = ENV['CONTAINER_TYPE']
         if ct.nil?
-          "docker"
+          'docker'
         else
           ct
         end
@@ -15,7 +15,7 @@ module DockerMCP
       def namespace_name
         ns = ENV['NAMESPACE_NAME']
         if ns.nil?
-          "default"
+          'default'
         else
           ns
         end

@@ -10,10 +10,12 @@ require 'github.com/containerd/containerd/api/services/namespaces/v1/namespace_s
 
 module DockerMCP
   module ContainerdApi
+    # Namespace
     class Namespace
       class << self
         def load_stub
-          Containerd::Services::Namespaces::V1::Namespaces::Stub.new(ContainerdApi.containerd_sock, :this_channel_is_insecure)
+          Containerd::Services::Namespaces::V1::Namespaces::Stub.new(ContainerdApi.containerd_sock,
+                                                                     :this_channel_is_insecure)
         end
 
         def namespace_list

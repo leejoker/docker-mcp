@@ -15,7 +15,7 @@ module DockerMCP
 
       def call
         ct = GlobalUtils.container_type
-        if ct == "docker"
+        if ct == 'docker'
           Docker::Image.all.to_json
         else
           ns = GlobalUtils.namespace_name
@@ -34,15 +34,14 @@ module DockerMCP
 
       def call(url:)
         ct = GlobalUtils.container_type
-        if ct == "docker"
+        if ct == 'docker'
           image = Docker::Image.create({ 'fromImage' => url })
-          image.to_json
         else
           ns = GlobalUtils.namespace_name
           ContainerdApi::Image.image_pull(ns, url)
           image = ContainerdApi::Image.get_image(ns, url)
-          image.to_json
         end
+        image.to_json
       end
     end
 

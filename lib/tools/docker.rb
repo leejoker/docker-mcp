@@ -15,7 +15,7 @@ module DockerMCP
 
       def call
         ct = GlobalUtils.container_type
-        if ct == "docker"
+        if ct == 'docker'
           Docker.version
         else
           ContainerdApi::Version.version
@@ -29,11 +29,9 @@ module DockerMCP
 
       def call
         ct = GlobalUtils.container_type
-        if ct == "docker"
-          Docker.info
-        else
-          nil
-        end
+        return unless ct == 'docker'
+
+        Docker.info
       end
     end
   end
